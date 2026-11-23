@@ -56,6 +56,14 @@ export const pageOf = <T extends z.ZodTypeAny>(item: T) =>
 
 export const productPageSchema = pageOf(productSchema);
 
+/**
+ * /products/search returns the category without `slug`, unlike /products.
+ * Recorded as an inconsistency in docs/defects.md; kept separate so the
+ * main contract stays strict.
+ */
+export const searchProductSchema = productSchema.extend({ category: z.object({ id, name: z.string() }) });
+export const searchPageSchema = pageOf(searchProductSchema);
+
 export const loginResponseSchema = z.object({
   access_token: z.string().min(20),
   token_type: z.literal('bearer'),
