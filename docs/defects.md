@@ -4,15 +4,17 @@ Defects found while building and running this suite against https://practicesoft
 (API version 5.0). Toolshop is a practice application, so these are recorded for reference
 rather than raised with a vendor. Each one is reproducible with the steps below.
 
-| ID     | Title                                                                                     | Severity                | Found by                 | Status in suite                                    |
-| ------ | ----------------------------------------------------------------------------------------- | ----------------------- | ------------------------ | -------------------------------------------------- |
-| DEF-01 | Products can be created without admin rights, even without logging in                     | Critical (security)     | API probing for #11      | Expected failure in `access-control.spec.ts`       |
-| DEF-02 | Edit product form does not load stock, brand, category and image; Save then does nothing  | Major                   | E2E-02                   | E2E-02 re-enters the fields and adds an annotation |
-| DEF-03 | Product data is cached for 2 minutes, so shoppers see old prices after a change           | Major                   | E2E-02                   | Shopper checks use fresh browser contexts          |
-| DEF-04 | When the product list fails (HTTP 500), placeholders stay forever and no message is shown | Major                   | MOCK-03                  | Expected failure in `network-mocking.spec.ts`      |
-| DEF-05 | `/products/{id}/related` returns 500 for a deleted product instead of 404                 | Minor                   | E2E-02 investigation     | Expected failure in `validation.spec.ts`           |
-| DEF-06 | `/products/search` returns the category without `slug`, unlike `/products`                | Minor (API consistency) | Contract check in E2E-01 | Separate schema `searchProductSchema`              |
-| DEF-07 | `POST /products` returns `in_stock` as a number, `GET` returns a boolean                  | Minor (API consistency) | Contract check in VAL-17 | Separate schema `createdProductSchema`             |
+| ID     | Title                                                                                     | Severity                             | Found by                 | Status in suite                                    |
+| ------ | ----------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------ | -------------------------------------------------- |
+| DEF-01 | Products can be created without admin rights, even without logging in                     | Critical (security)                  | API probing for #11      | Expected failure in `access-control.spec.ts`       |
+| DEF-02 | Edit product form does not load stock, brand, category and image; Save then does nothing  | Major                                | E2E-02                   | E2E-02 re-enters the fields and adds an annotation |
+| DEF-03 | Product data is cached for 2 minutes, so shoppers see old prices after a change           | Major                                | E2E-02                   | Shopper checks use fresh browser contexts          |
+| DEF-04 | When the product list fails (HTTP 500), placeholders stay forever and no message is shown | Major                                | MOCK-03                  | Expected failure in `network-mocking.spec.ts`      |
+| DEF-05 | `/products/{id}/related` returns 500 for a deleted product instead of 404                 | Minor                                | E2E-02 investigation     | Expected failure in `validation.spec.ts`           |
+| DEF-06 | `/products/search` returns the category without `slug`, unlike `/products`                | Minor (API consistency)              | Contract check in E2E-01 | Separate schema `searchProductSchema`              |
+| DEF-07 | `POST /products` returns `in_stock` as a number, `GET` returns a boolean                  | Minor (API consistency)              | Contract check in VAL-17 | Separate schema `createdProductSchema`             |
+| DEF-08 | "Show password" button has no accessible name                                             | Critical (accessibility, WCAG 4.1.2) | axe scan A11Y-03/04      | Allow-listed in `accessibility.spec.ts`            |
+| DEF-09 | Invalid list markup in the category filter and the password rules                         | Serious (accessibility, WCAG 1.3.1)  | axe scan A11Y-01/04      | Allow-listed in `accessibility.spec.ts`            |
 
 ---
 
@@ -146,3 +148,39 @@ This was hidden at first: the test that creates a product used `test.fail()`, so
 error looked like the expected failure and four products were left on the shared site. The suite
 now uses `expectKnownDefect()` (see `fixtures/known-defect.ts`), which only expects the defect
 assertion itself to fail.
+
+---
+
+### DEF-08, "Show password" button has no accessible name
+
+|              |                                                              |
+| ------------ | ------------------------------------------------------------ |
+| **Pages**    | `/auth/login`, `/auth/register`                              |
+| **Severity** | Critical (accessibility, WCAG 2.1 – 4.1.2 Name, Role, Value) |
+
+**Steps**
+
+1. Open the login page.
+2. Run an axe scan with WCAG 2.1 A/AA rules, or move to the eye button with a screen reader.
+
+**Expected:** the button has a name such as "Show password", and says whether the password is shown.
+**Actual:** the button only contains an eye icon with `aria-hidden="true"`. axe reports `button-name`
+(critical); a screen reader announces just "button".
+
+---
+
+### DEF-09, Invalid list markup
+
+|              |                                                                                |
+| ------------ | ------------------------------------------------------------------------------ |
+| **Pages**    | `/` (category filter), `/auth/register` (password rules under `#passwordHelp`) |
+| **Severity** | Serious (accessibility, WCAG 2.1 – 1.3.1 Info and Relationships)               |
+
+**Steps**
+
+1. Open the shop front, then the registration page.
+2. Run an axe scan with WCAG 2.1 A/AA rules.
+
+**Expected:** `<ul>` elements contain only `<li>` children.
+**Actual:** the category filter puts a `<fieldset>` directly inside `<ul>`, and the password rules list
+has non-`<li>` children too. Screen readers announce wrong item counts or skip the structure.
