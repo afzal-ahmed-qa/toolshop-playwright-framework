@@ -29,7 +29,9 @@ runs:
       env:
         SPRINT: ${{ inputs.sprint }}
         DISABLE_LOGGING: 'true'
-      run: docker compose -f docker-compose.prod.yml -f docker-compose.ci.yml up -d --pull missing --quiet-pull
+      run: |
+        docker compose -f docker-compose.prod.yml -f docker-compose.ci.yml build web
+        docker compose -f docker-compose.prod.yml -f docker-compose.ci.yml up -d --quiet-pull
 
     - name: Wait for the database
       shell: bash
