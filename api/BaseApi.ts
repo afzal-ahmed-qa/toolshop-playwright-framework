@@ -8,7 +8,8 @@ import type { z } from 'zod';
  */
 export abstract class BaseApi {
   constructor(
-    protected readonly request: APIRequestContext,
+    /** Raw access for negative tests that check status codes. */
+    readonly request: APIRequestContext,
     protected token?: string,
   ) {}
 

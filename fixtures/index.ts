@@ -32,6 +32,12 @@ type TestFixtures = {
   productPage: ProductPage;
   checkoutPage: CheckoutPage;
   loginPage: LoginPage;
+  /**
+   * Register things a test creates; they are deleted after the test.
+   * Fixture teardown runs even when the test times out, unlike a finally block
+   * whose API context may already be closed.
+   */
+  cleanup: { product(id: string): void };
 };
 
 export const test = base.extend<TestFixtures>({
@@ -70,6 +76,12 @@ export const test = base.extend<TestFixtures>({
       [TOKEN_KEY, newCustomer.token] as const,
     );
     await use(page);
+  },
+
+  cleanup: async ({ adminApi }, use) => {
+    const products: string[] = [];
+    await use({ product: (id) => products.push(id) });
+    for (const id of products) await adminApi.products.remove(id);
   },
 
   // Page objects use `page`. A test that asks for customerPage gets the same
