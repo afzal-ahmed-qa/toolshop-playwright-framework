@@ -21,7 +21,8 @@
     "test:a11y": "playwright test --grep @a11y",
     "test:e2e": "playwright test --grep @e2e",
     "test:visual:docker": "docker run --rm --network host --ipc=host -v \"$PWD\":\"$PWD\" -w \"$PWD\" -e ENV=local -e VISUAL=1 -e CI mcr.microsoft.com/playwright:v1.57.0-noble npx playwright test --project=visual",
-    "test:visual:update": "docker run --rm --network host --ipc=host -v \"$PWD\":\"$PWD\" -w \"$PWD\" -e ENV=local -e VISUAL=1 -e CI mcr.microsoft.com/playwright:v1.57.0-noble npx playwright test --project=visual --update-snapshots=all"
+    "test:visual:update": "docker run --rm --network host --ipc=host -v \"$PWD\":\"$PWD\" -w \"$PWD\" -e ENV=local -e VISUAL=1 -e CI mcr.microsoft.com/playwright:v1.57.0-noble npx playwright test --project=visual --update-snapshots=all",
+    "test:with-bugs": "ENV=with-bugs playwright test --project=with-bugs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.11.0",

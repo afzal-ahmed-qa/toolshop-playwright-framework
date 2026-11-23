@@ -15,6 +15,7 @@ rather than raised with a vendor. Each one is reproducible with the steps below.
 | DEF-07 | `POST /products` returns `in_stock` as a number, `GET` returns a boolean                  | Minor (API consistency)              | Contract check in VAL-17 | Separate schema `createdProductSchema`             |
 | DEF-08 | "Show password" button has no accessible name                                             | Critical (accessibility, WCAG 4.1.2) | axe scan A11Y-03/04      | Allow-listed in `accessibility.spec.ts`            |
 | DEF-09 | Invalid list markup in the category filter and the password rules                         | Serious (accessibility, WCAG 1.3.1)  | axe scan A11Y-01/04      | Allow-listed in `accessibility.spec.ts`            |
+| DEF-10 | A rejected order shows no error, only "Payment was successful"                            | Major                                | E2E-03                   | `expectKnownDefect` in `checkout-errors.spec.ts`   |
 
 ---
 
@@ -184,3 +185,64 @@ assertion itself to fail.
 **Expected:** `<ul>` elements contain only `<li>` children.
 **Actual:** the category filter puts a `<fieldset>` directly inside `<ul>`, and the password rules list
 has non-`<li>` children too. Screen readers announce wrong item counts or skip the structure.
+
+---
+
+### DEF-10, A rejected order shows no error message
+
+|              |                                                                       |
+| ------------ | --------------------------------------------------------------------- |
+| **Page**     | `/checkout`, step 4 (Payment)                                         |
+| **Severity** | Major: the customer believes the purchase worked, but no order exists |
+
+**Steps**
+
+1. Log in, add a product to the cart and go to checkout.
+2. On the billing address step, change the postcode and type a city that does not belong to it.
+3. Choose a payment method, click **Confirm** (payment check), then **Confirm** again (place order).
+
+**Expected:** an error such as "The city does not belong to the selected country", and the
+customer can correct the address.
+**Actual:** the API answers 422 with that message, but the page keeps showing
+"Payment was successful" and the Confirm button. No message, no order, no invoice.
+
+Note: the 422 itself is not always returned. The address check "fails open" when the postcode
+service is unavailable (by design, see `AddressMatchesCountry` in the Toolshop source), and then
+the order is accepted. E2E-03 therefore mocks the rejection with the real 422 body.
+
+---
+
+## The `sprint5-with-bugs` build
+
+Defects in https://with-bugs.practicesoftwaretesting.com (API
+https://api-with-bugs.practicesoftwaretesting.com). This build uses an older API format (numeric
+ids, a flat address), so its tests use raw requests: `tests/defects/with-bugs.spec.ts`, run with
+`npm run test:with-bugs` and every night in CI. Expected behaviour is taken from the normal sprint 5
+build where it exists.
+
+| ID    | Title                                                                                    | Severity            |
+| ----- | ---------------------------------------------------------------------------------------- | ------------------- |
+| WB-01 | `/users/me` returns the password hash, role and failed-login counter                     | Critical (security) |
+| WB-02 | Login tokens are valid for about 180 days (`expires_in` 15,600,000 s; sprint 5: 300 s)   | Major (security)    |
+| WB-03 | A customer can list all users and read any user, including the admin and password hashes | Critical (security) |
+| WB-04 | `GET /invoices` works without logging in and returns customer invoices and addresses     | Critical (security) |
+| WB-05 | Registration accepts `not-an-email` as e-mail and returns the password hash              | Major               |
+| WB-06 | The registration response shows phone `0123456789` as the number `123456789`             | Minor               |
+| WB-07 | No account lockout; sprint 5 locks after 3 wrong passwords with 423 "Account locked"     | Major (security)    |
+
+**Steps, in short** (all with `Accept: application/json`):
+
+- **WB-01:** log in as `customer@practicesoftwaretesting.com`, `GET /users/me`. The body contains
+  `password`, `role`, `enabled` and `failed_login_attempts`.
+- **WB-02:** `POST /users/login`; the response has `"expires_in": 15600000`.
+- **WB-03:** as that customer, `GET /users` and `GET /users/1`. Both answer 200; the list includes the
+  `password` field of every user.
+- **WB-04:** `GET /invoices` with no `Authorization` header answers 200 with invoices of user 2.
+- **WB-05:** `POST /users/register` with `"email": "not-an-email"` answers 201; the body contains `password`.
+- **WB-06:** register with `"phone": "0123456789"`; the response has `"phone": 123456789`.
+  `GET /users/me` afterwards shows the correct `"0123456789"`, so only the response is wrong.
+- **WB-07:** register a user, log in 4 times with a wrong password, then with the right one: 200.
+  On the sprint 5 build the 4th attempt already returns 423.
+
+Checked and **not** a defect in this build: sorting, pagination, search (also case-insensitive),
+category filter, password strength and the minimum age of 18.

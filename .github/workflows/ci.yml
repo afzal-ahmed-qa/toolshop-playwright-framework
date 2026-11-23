@@ -110,10 +110,32 @@ jobs:
           path: blob-report/
           retention-days: 7
 
+  with-bugs:
+    name: defects in the with-bugs build
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      ENV: with-bugs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright test --project=with-bugs
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: blob-report-with-bugs
+          path: blob-report/
+          retention-days: 7
+
   report:
     name: merge HTML report
     if: ${{ !cancelled() && github.event_name != 'pull_request' }}
-    needs: [full, visual]
+    needs: [full, visual, with-bugs]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
