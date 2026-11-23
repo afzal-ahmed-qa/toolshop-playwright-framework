@@ -16,7 +16,10 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:pr": "playwright test --grep \"@smoke|@api\"",
+    "test:a11y": "playwright test --grep @a11y",
+    "test:e2e": "playwright test --grep @e2e"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.11.0",
