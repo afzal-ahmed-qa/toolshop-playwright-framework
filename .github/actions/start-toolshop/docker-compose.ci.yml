@@ -1,0 +1,14 @@
+# Overrides for docker-compose.prod.yml on GitHub's amd64 runners.
+services:
+  web:
+    # The published web image is arm64-only ("exec format error" on amd64).
+    # It is just nginx plus one config file, so build it from the app's Dockerfile.
+    # A local image name, so nothing tries to pull the arm64 one.
+    image: toolshop-web-ci
+    build:
+      context: ./_docker
+      dockerfile: web.docker
+    pull_policy: build
+  cron:
+    # Same arm64-only problem, and the tests do not need scheduled jobs.
+    profiles: ['disabled']
