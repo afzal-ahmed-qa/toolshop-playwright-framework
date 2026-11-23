@@ -1,6 +1,7 @@
 import { test, expect } from '@fixtures/index';
 import type { Route } from '@playwright/test';
 import type { GridResults } from '@pages/BasePage';
+import { expectKnownDefect } from '@fixtures/known-defect';
 
 /**
  * How the shop front behaves when the product API misbehaves.
@@ -48,13 +49,14 @@ test.describe('Product list under network problems', () => {
     page,
     homePage,
   }) => {
-    test.fail(true, 'DEF-04: on HTTP 500 the placeholders stay forever and no message is shown');
     await page.route(PRODUCT_LIST, (route) =>
       route.fulfill({ status: 500, json: { message: 'Server Error' } }),
     );
     await page.goto('/');
-    await expect(homePage.skeletons).toHaveCount(0, { timeout: 5_000 });
-    await expect(page.getByText(/went wrong|try again|could not|error/i)).toBeVisible();
+    await expectKnownDefect('DEF-04', 'placeholders stay forever and no message on HTTP 500', async () => {
+      await expect(homePage.skeletons).toHaveCount(0, { timeout: 5_000 });
+      await expect(page.getByText(/went wrong|try again|could not|error/i)).toBeVisible({ timeout: 1_000 });
+    });
   });
 
   test('MOCK-04 the grid formats edge-case data correctly', async ({ page, homePage }) => {
