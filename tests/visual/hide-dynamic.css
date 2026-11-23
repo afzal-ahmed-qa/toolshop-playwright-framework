@@ -1,0 +1,7 @@
+/* Elements that change on their own; hidden during screenshots so they cannot cause false diffs. */
+[data-test='notification-bar'],
+[data-test='chat-toggle'],
+[data-test='live-activity-toggle'],
+[data-test='course-promo'] {
+  visibility: hidden !important;
+}

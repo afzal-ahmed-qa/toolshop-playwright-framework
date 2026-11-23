@@ -88,10 +88,32 @@ jobs:
           path: blob-report/
           retention-days: 7
 
+  visual:
+    name: visual (Playwright Docker image)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/start-toolshop
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # Same image as the baselines, so fonts and anti-aliasing match.
+      - run: npm run test:visual:docker
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: blob-report-visual
+          path: blob-report/
+          retention-days: 7
+
   report:
     name: merge HTML report
     if: ${{ !cancelled() && github.event_name != 'pull_request' }}
-    needs: full
+    needs: [full, visual]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
