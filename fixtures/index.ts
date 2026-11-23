@@ -5,6 +5,10 @@ import { ToolshopApi } from '@api/ToolshopApi';
 import type { NewUser } from '@api/AuthApi';
 import type { PostcodeLookup, User } from '@api/schemas';
 import { buildUser, GERMAN_POSTCODES } from '@data/factories';
+import { HomePage } from '@pages/HomePage';
+import { ProductPage } from '@pages/ProductPage';
+import { CheckoutPage } from '@pages/CheckoutPage';
+import { LoginPage } from '@pages/LoginPage';
 import { TOKEN_KEY } from './auth';
 
 export type Customer = NewUser & {
@@ -24,6 +28,10 @@ type TestFixtures = {
   newCustomer: Customer;
   /** A page where `newCustomer` is already logged in. */
   customerPage: Page;
+  homePage: HomePage;
+  productPage: ProductPage;
+  checkoutPage: CheckoutPage;
+  loginPage: LoginPage;
 };
 
 export const test = base.extend<TestFixtures>({
@@ -63,6 +71,13 @@ export const test = base.extend<TestFixtures>({
     );
     await use(page);
   },
+
+  // Page objects use `page`. A test that asks for customerPage gets the same
+  // page instance, so page objects see the logged-in customer too.
+  homePage: async ({ page }, use) => use(new HomePage(page)),
+  productPage: async ({ page }, use) => use(new ProductPage(page)),
+  checkoutPage: async ({ page }, use) => use(new CheckoutPage(page)),
+  loginPage: async ({ page }, use) => use(new LoginPage(page)),
 });
 
 export { expect };
