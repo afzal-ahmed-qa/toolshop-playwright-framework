@@ -5,6 +5,7 @@ import {
   categorySchema,
   productPageSchema,
   productSchema,
+  searchPageSchema,
   type Product,
   type ProductPage,
 } from './schemas';
@@ -45,11 +46,11 @@ export class ProductsApi extends BaseApi {
     return this.parse(await this.request.get(`products/${id}`, { headers: this.headers() }), productSchema);
   }
 
-  async search(q: string, page = 1): Promise<ProductPage> {
+  async search(q: string, page = 1) {
     const res = await this.request.get(`products/search?q=${encodeURIComponent(q)}&page=${page}`, {
       headers: this.headers(),
     });
-    return this.parse(res, productPageSchema);
+    return this.parse(res, searchPageSchema);
   }
 
   async brands() {
