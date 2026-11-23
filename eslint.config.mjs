@@ -9,6 +9,8 @@ export default tseslint.config(
   {
     files: ['tests/**/*.ts'],
     ...playwright.configs['flat/recommended'],
+    // auth.setup.ts imports `test` as `setup`.
+    settings: { playwright: { globalAliases: { test: ['setup'] } } },
     rules: {
       ...playwright.configs['flat/recommended'].rules,
       // Hard waits hide timing problems; use web-first assertions instead.
