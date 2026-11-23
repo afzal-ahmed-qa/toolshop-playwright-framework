@@ -12,6 +12,7 @@ rather than raised with a vendor. Each one is reproducible with the steps below.
 | DEF-04 | When the product list fails (HTTP 500), placeholders stay forever and no message is shown | Major                   | MOCK-03                  | Expected failure in `network-mocking.spec.ts`      |
 | DEF-05 | `/products/{id}/related` returns 500 for a deleted product instead of 404                 | Minor                   | E2E-02 investigation     | Expected failure in `validation.spec.ts`           |
 | DEF-06 | `/products/search` returns the category without `slug`, unlike `/products`                | Minor (API consistency) | Contract check in E2E-01 | Separate schema `searchProductSchema`              |
+| DEF-07 | `POST /products` returns `in_stock` as a number, `GET` returns a boolean                  | Minor (API consistency) | Contract check in VAL-17 | Separate schema `createdProductSchema`             |
 
 ---
 
@@ -122,3 +123,26 @@ For comparison, an empty list is handled well: "There are no products found."
 **Expected:** the same product shape from both endpoints.
 **Actual:** `/products` returns `{ id, name, slug }`; `/products/search` returns `{ id, name }`.
 A client that relies on `slug` breaks on search results. Found by the zod contract check.
+
+---
+
+### DEF-07, Create-product response has a different `in_stock` type
+
+|              |                         |
+| ------------ | ----------------------- |
+| **Endpoint** | `POST /products`        |
+| **Severity** | Minor (API consistency) |
+
+**Steps**
+
+1. As admin, `POST /products` with `"stock": 5`.
+2. `GET /products/{new id}`.
+
+**Expected:** `in_stock` has the same type in both responses.
+**Actual:** the POST response has `"in_stock": 5` (the stock count); the GET response has
+`"in_stock": true`. A client that reads the create response as a boolean gets a number.
+
+This was hidden at first: the test that creates a product used `test.fail()`, so the contract
+error looked like the expected failure and four products were left on the shared site. The suite
+now uses `expectKnownDefect()` (see `fixtures/known-defect.ts`), which only expects the defect
+assertion itself to fail.
