@@ -1,4 +1,5 @@
 import path from 'node:path';
+import type { Page } from '@playwright/test';
 import { test, expect } from '@fixtures/index';
 import { env } from '@config/env';
 
@@ -11,6 +12,11 @@ import { env } from '@config/env';
  *     anti-aliasing are the same on every machine (npm run test:visual:docker)
  * Moving parts (chat button, live activity, banners) are hidden with a stylesheet.
  */
+/** Hover effects (e.g. the cart table) depend on where the last click left the mouse. */
+async function parkMouse(page: Page) {
+  await page.mouse.move(0, 0);
+}
+
 const screenshot = {
   stylePath: path.join(__dirname, 'hide-dynamic.css'),
   animations: 'disabled' as const,
@@ -22,18 +28,21 @@ test.describe('Visual @visual', () => {
 
   test('VIS-01 navigation bar', async ({ homePage, page }) => {
     await homePage.open();
+    await parkMouse(page);
     await expect(page.locator('nav.navbar')).toHaveScreenshot('navbar.png', screenshot);
   });
 
-  test('VIS-02 product card', async ({ homePage }) => {
+  test('VIS-02 product card', async ({ homePage, page }) => {
     await homePage.open();
     await homePage.sortBy('name,asc');
+    await parkMouse(page);
     await expect(homePage.card(0).root).toHaveScreenshot('product-card.png', screenshot);
   });
 
   test('VIS-03 product details', async ({ api, productPage, page }) => {
     const [first] = (await api.products.list({ sort: 'name,asc' })).data;
     await productPage.open(first!.id);
+    await parkMouse(page);
     await expect(page.locator('app-detail .row').first()).toHaveScreenshot('product-details.png', screenshot);
   });
 
@@ -44,6 +53,7 @@ test.describe('Visual @visual', () => {
     await productPage.open(b!.id);
     await productPage.addToCart(1);
     await checkoutPage.open();
+    await parkMouse(page);
     await expect(page.locator('app-cart table')).toHaveScreenshot('cart.png', screenshot);
   });
 });
