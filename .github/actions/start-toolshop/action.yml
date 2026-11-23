@@ -14,8 +14,14 @@ runs:
       with:
         repository: testsmith-io/practice-software-testing
         path: toolshop
-        sparse-checkout: docker-compose.prod.yml
+        sparse-checkout: |
+          docker-compose.prod.yml
+          _docker
         sparse-checkout-cone-mode: false
+
+    - name: Add the CI overrides
+      shell: bash
+      run: cp "${{ github.action_path }}/docker-compose.ci.yml" toolshop/docker-compose.ci.yml
 
     - name: Start containers
       shell: bash
@@ -23,39 +29,42 @@ runs:
       env:
         SPRINT: ${{ inputs.sprint }}
         DISABLE_LOGGING: 'true'
-      run: docker compose -f docker-compose.prod.yml up -d --pull missing --quiet-pull
+      run: docker compose -f docker-compose.prod.yml -f docker-compose.ci.yml up -d --pull missing --quiet-pull
 
     - name: Wait for the database
       shell: bash
       working-directory: toolshop
       env:
         SPRINT: ${{ inputs.sprint }}
+        DISABLE_LOGGING: 'true'
       run: |
         for i in $(seq 1 60); do
-          docker compose -f docker-compose.prod.yml exec -T mariadb mysqladmin ping -h localhost -uroot -proot --silent && exit 0
+          docker compose -f docker-compose.prod.yml -f docker-compose.ci.yml exec -T mariadb mysqladmin ping -h localhost -uroot -proot --silent && exit 0
           sleep 2
         done
-        echo "MariaDB did not start"; docker compose -f docker-compose.prod.yml logs mariadb; exit 1
+        echo "MariaDB did not start"; docker compose -f docker-compose.prod.yml -f docker-compose.ci.yml logs mariadb; exit 1
 
     - name: Create tables and load seed data
       shell: bash
       working-directory: toolshop
       env:
         SPRINT: ${{ inputs.sprint }}
-      run: docker compose -f docker-compose.prod.yml exec -T laravel-api php artisan migrate:fresh --seed --force
+        DISABLE_LOGGING: 'true'
+      run: docker compose -f docker-compose.prod.yml -f docker-compose.ci.yml exec -T laravel-api php artisan migrate:fresh --seed --force
 
     - name: Wait for API and UI
       shell: bash
       working-directory: toolshop
       env:
         SPRINT: ${{ inputs.sprint }}
+        DISABLE_LOGGING: 'true'
       run: |
         wait_for() {
           for i in $(seq 1 90); do
             [ "$(curl -s -o /dev/null -w '%{http_code}' "$1")" = "200" ] && echo "$1 is up" && return 0
             sleep 4
           done
-          echo "$1 did not come up"; docker compose -f docker-compose.prod.yml logs --tail 80; return 1
+          echo "$1 did not come up"; docker compose -f docker-compose.prod.yml -f docker-compose.ci.yml logs --tail 80; return 1
         }
         wait_for http://localhost:8091/status
         wait_for http://localhost:4200
