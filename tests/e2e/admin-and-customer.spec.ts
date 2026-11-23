@@ -11,7 +11,7 @@ import { cents } from '@pages/money';
  * A shopper who opens the product page right now, in a fresh browser.
  * Fresh on purpose: the product API answers with Cache-Control max-age=120,
  * so a browser that saw the product before shows the old data for up to
- * two minutes (DEF-07, covered separately in the defect tests).
+ * two minutes (DEF-03, covered separately in the defect tests).
  */
 async function shopperOpens(browser: Browser, productId: string, check: (p: ProductPage) => Promise<void>) {
   const context = await browser.newContext();
@@ -72,7 +72,7 @@ test('E2E-02 admin creates, reprices and deletes a product; a shopper sees each 
       await adminForm.setPrice(newPrice);
       test.info().annotations.push({
         type: 'known defect',
-        description: 'DEF-06: edit form does not load stock, brand, category and image',
+        description: 'DEF-02: edit form does not load stock, brand, category and image',
       });
       await adminForm.reenterFieldsNotLoadedOnEdit(product);
       await adminForm.save();

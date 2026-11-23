@@ -46,7 +46,7 @@ export class AdminProductFormPage extends BasePage {
   /**
    * The edit form loads name, description and price, but leaves stock, brand,
    * category and image empty. They are required, so Save silently does nothing
-   * until they are entered again (DEF-06 in docs/defects.md).
+   * until they are entered again (DEF-02 in docs/defects.md).
    */
   async reenterFieldsNotLoadedOnEdit(product: NewProduct) {
     await this.fields.stock.fill(String(product.stock ?? 10));
