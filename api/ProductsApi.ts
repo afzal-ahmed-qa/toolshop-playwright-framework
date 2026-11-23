@@ -3,6 +3,7 @@ import { BaseApi } from './BaseApi';
 import {
   brandSchema,
   categorySchema,
+  createdProductSchema,
   productPageSchema,
   productSchema,
   searchPageSchema,
@@ -65,9 +66,9 @@ export class ProductsApi extends BaseApi {
   }
 
   /** Admin only. */
-  async create(product: NewProduct): Promise<Product> {
+  async create(product: NewProduct) {
     const res = await this.request.post('products', { headers: this.headers(), data: product });
-    return this.parse(res, productSchema.partial().extend({ id: z.string() }), 201) as Promise<Product>;
+    return this.parse(res, createdProductSchema, 201);
   }
 
   /** Admin only. */

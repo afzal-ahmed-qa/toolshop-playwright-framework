@@ -140,6 +140,12 @@ export const invoicePageSchema = pageOf(invoiceSchema);
 
 export const errorSchema = z.object({ error: z.string().optional(), message: z.string().optional() });
 
+/**
+ * POST /products answers with in_stock as the stock COUNT (a number), while every
+ * GET returns a boolean (DEF-07). Only the fields callers use are checked here.
+ */
+export const createdProductSchema = z.object({ id, name: z.string(), price: money, in_stock: z.number() });
+
 export type Product = z.infer<typeof productSchema>;
 export type ProductPage = z.infer<typeof productPageSchema>;
 export type Brand = z.infer<typeof brandSchema>;

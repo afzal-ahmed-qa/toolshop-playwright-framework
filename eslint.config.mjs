@@ -20,7 +20,14 @@ export default tseslint.config(
       // Assertions often live in page objects (expectLoaded) or helpers.
       'playwright/expect-expect': [
         'warn',
-        { assertFunctionNames: ['expectLoaded', 'expectMatchesApi', 'expectNoNewViolations'] },
+        {
+          assertFunctionNames: [
+            'expectLoaded',
+            'expectMatches',
+            'expectKnownDefect',
+            'expectNoNewViolations',
+          ],
+        },
       ],
     },
   },
