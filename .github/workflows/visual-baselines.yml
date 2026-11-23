@@ -1,0 +1,25 @@
+name: Visual baselines
+
+# Run by hand when the UI changes on purpose. Creates new screenshots inside the
+# Playwright Docker image against a freshly seeded Toolshop and uploads them.
+# Review the images, then commit them through a pull request.
+on:
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/start-toolshop
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:visual:update
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines
+          path: tests/visual/*-snapshots/
